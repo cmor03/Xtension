@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "repl-ex",
+  "version": "1.0",
+  "description": "A Bitcoin Wallet for Replit Users",
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": {
+      "16": "repl-ex.ico",
+      "48": "repl-ex.ico",
+      "128": "repl-ex.ico"
+    }
+  },
+  "permissions": ["storage"],
+  "icons": {
+    "16": "repl-ex.ico",
+    "48": "repl-ex.ico",
+    "128": "repl-ex.ico"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/*",
+        "index.html",
+        "manifest.json",
+        "repl-ex.ico",
+        "vite.svg"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  }
+}

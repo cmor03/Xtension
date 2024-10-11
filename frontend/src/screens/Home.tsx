@@ -1,0 +1,81 @@
+import { useCallback, useEffect, useState } from "react";
+import { Card, CardContent } from "../components/ui/card";
+import BalanceDisplay from "../components/BalanceDisplay";
+import ActionButtons from "../components/ActionButtons";
+import SendScreen from "./Send";
+import ReceiveScreen from "./Receive";
+import wallet from "../wallet";
+import { Screen } from "../types";
+
+type HomeScreenProps = {
+  currentScreen: Screen;
+  setCurrentScreen: (screen: Screen) => void;
+};
+
+const useIsOpen = () => {
+  const [open, setIsOpen] = useState(false);
+
+  const checkIsOpen = useCallback(() => {
+    if (open !== wallet.isOpen()) {
+      setIsOpen(wallet.isOpen());
+    }
+  }, [open]);
+
+  useEffect(() => {
+    checkIsOpen();
+  }, [checkIsOpen]);
+
+  return { open, checkIsOpen };
+};
+
+const useBalance = (checkIsOpen: () => void) => {
+  const [balance, setBalance] = useState(0);
+
+  useEffect(() => {
+    const unsubscribe = wallet.balance.subscribeBalance((newBalance) => {
+      checkIsOpen();
+      setBalance(newBalance);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [checkIsOpen]);
+
+  return balance;
+};
+
+export default function HomeScreen({
+  currentScreen,
+  setCurrentScreen,
+}: HomeScreenProps) {
+  const { checkIsOpen } = useIsOpen();
+  const balance = useBalance(checkIsOpen);
+
+  const renderScreen = () => {
+    switch (currentScreen) {
+      case Screen.Send:
+        return <SendScreen onComplete={() => setCurrentScreen(Screen.Home)} />;
+      case Screen.Receive:
+        return (
+          <ReceiveScreen onComplete={() => setCurrentScreen(Screen.Home)} />
+        );
+      default:
+        return (
+          <>
+            <BalanceDisplay balance={balance} />
+            <ActionButtons
+              onSendClick={() => setCurrentScreen(Screen.Send)}
+              onReceiveClick={() => setCurrentScreen(Screen.Receive)}
+            />
+          </>
+        );
+    }
+  };
+
+  return (
+    <Card className="w-full max-w-md mx-auto border-none">
+      <CardContent>{renderScreen()}</CardContent>
+    </Card>
+  );
+}
