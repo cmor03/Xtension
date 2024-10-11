@@ -9,18 +9,16 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Tab, Screen } from "../types";
+import {
+  useAppActiveTab,
+  useAppSetActiveTab,
+  useAppSetCurrentScreen,
+} from "../hooks/useApp";
 
-type HeaderProps = {
-  activeTab: Tab;
-  setActiveTab: (tab: Tab) => void;
-  setActiveScreen: (screen: Screen) => void;
-};
-
-export default function Header({
-  activeTab,
-  setActiveTab,
-  setActiveScreen,
-}: HeaderProps) {
+export default function Header() {
+  const activeTab = useAppActiveTab();
+  const setActiveTab = useAppSetActiveTab();
+  const setCurrentScreen = useAppSetCurrentScreen();
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -29,7 +27,7 @@ export default function Header({
         className="text-lg font-bold cursor-pointer hover:underline"
         onClick={() => {
           setActiveTab(Tab.Wallet);
-          setActiveScreen(Screen.Home);
+          setCurrentScreen(Screen.Home);
         }}
       >
         repl-ex
@@ -56,7 +54,7 @@ export default function Header({
               className="justify-start"
               onClick={() => {
                 setActiveTab(Tab.Wallet);
-                setActiveScreen(Screen.Home);
+                setCurrentScreen(Screen.Home);
                 setIsOpen(false);
               }}
             >

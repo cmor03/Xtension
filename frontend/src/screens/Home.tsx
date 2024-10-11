@@ -6,11 +6,7 @@ import SendScreen from "./Send";
 import ReceiveScreen from "./Receive";
 import wallet from "../wallet";
 import { Screen } from "../types";
-
-type HomeScreenProps = {
-  currentScreen: Screen;
-  setCurrentScreen: (screen: Screen) => void;
-};
+import { useAppCurrentScreen, useAppSetCurrentScreen } from "@/hooks/useApp";
 
 const useIsOpen = () => {
   const [open, setIsOpen] = useState(false);
@@ -45,10 +41,9 @@ const useBalance = (checkIsOpen: () => void) => {
   return balance;
 };
 
-export default function HomeScreen({
-  currentScreen,
-  setCurrentScreen,
-}: HomeScreenProps) {
+export default function HomeScreen() {
+  const currentScreen = useAppCurrentScreen();
+  const setCurrentScreen = useAppSetCurrentScreen();
   const { checkIsOpen } = useIsOpen();
   const balance = useBalance(checkIsOpen);
 

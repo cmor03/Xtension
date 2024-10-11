@@ -1,37 +1,33 @@
-import { useState } from "react";
 import "./App.css";
 import HomeScreen from "./screens/Home";
 import SettingsScreen from "./screens/Settings";
 import Header from "./components/Header";
-import { Tab, Screen } from "./types";
+import { Tab } from "./types";
+import { WalletProvider } from "./contexts/WalletContext";
+import { AppProvider } from "./contexts/AppContext";
+import Layout from "./components/Layout";
+import { useAppActiveTab } from "./hooks/useApp";
 
-function Layout({ children }: { children: React.ReactNode }) {
+function AppContent() {
+  const activeTab = useAppActiveTab();
+
   return (
-    <div className="min-w-[300px] min-h-[400px] flex flex-col">{children}</div>
+    <Layout>
+      <Header />
+      <div className="flex-grow flex items-center">
+        {activeTab === Tab.Wallet ? <HomeScreen /> : <SettingsScreen />}
+      </div>
+    </Layout>
   );
 }
 
 function App() {
-  const [activeTab, setActiveTab] = useState<Tab>(Tab.Wallet);
-  const [currentScreen, setCurrentScreen] = useState<Screen>(Screen.Home);
   return (
-    <Layout>
-      <Header
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        setActiveScreen={setCurrentScreen}
-      />
-      <div className="flex-grow flex items-center">
-        {activeTab === Tab.Wallet ? (
-          <HomeScreen
-            currentScreen={currentScreen}
-            setCurrentScreen={setCurrentScreen}
-          />
-        ) : (
-          <SettingsScreen />
-        )}
-      </div>
-    </Layout>
+    <WalletProvider>
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
+    </WalletProvider>
   );
 }
 
