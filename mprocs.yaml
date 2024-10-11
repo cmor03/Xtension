@@ -1,0 +1,8 @@
+procs:
+  backend:
+    cwd: ./backend
+    shell: cargo run
+
+  frontend:
+    cwd: ./frontend
+    shell: pnpm i && pnpm run dev
