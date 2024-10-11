@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,12 +14,14 @@ import {
   useAppSetActiveTab,
   useAppSetCurrentScreen,
 } from "../hooks/useApp";
+import { WalletContext } from "../contexts/WalletContext";
 
 export default function Header() {
   const activeTab = useAppActiveTab();
   const setActiveTab = useAppSetActiveTab();
   const setCurrentScreen = useAppSetCurrentScreen();
   const [isOpen, setIsOpen] = useState(false);
+  const { state: walletState } = useContext(WalletContext);
 
   return (
     <header className="flex justify-between items-center py-2 px-4 border-b relative">
@@ -33,46 +35,54 @@ export default function Header() {
         repl-ex
       </h1>
       <p className="text-xs text-muted-foreground">me@repl-ex.com</p>
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            aria-label="Open menu"
-            className="z-10"
-          >
-            <Menu className="h-4 w-4" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="right" className="z-50">
-          <SheetHeader>
-            <SheetTitle>Menu</SheetTitle>
-          </SheetHeader>
-          <nav className="flex flex-col gap-2 mt-4">
+      <div className="flex items-center">
+        <div
+          className={`w-2 h-2 rounded-full mr-2 ${
+            walletState.isOpen ? "bg-green-500" : "bg-red-500"
+          }`}
+          title={walletState.isOpen ? "Wallet open" : "Wallet not open"}
+        ></div>
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger asChild>
             <Button
-              variant={activeTab === "wallet" ? "default" : "ghost"}
-              className="justify-start"
-              onClick={() => {
-                setActiveTab(Tab.Wallet);
-                setCurrentScreen(Screen.Home);
-                setIsOpen(false);
-              }}
+              variant="ghost"
+              size="sm"
+              aria-label="Open menu"
+              className="z-10"
             >
-              Wallet
+              <Menu className="h-4 w-4" />
             </Button>
-            <Button
-              variant={activeTab === "settings" ? "default" : "ghost"}
-              className="justify-start"
-              onClick={() => {
-                setActiveTab(Tab.Settings);
-                setIsOpen(false);
-              }}
-            >
-              Settings
-            </Button>
-          </nav>
-        </SheetContent>
-      </Sheet>
+          </SheetTrigger>
+          <SheetContent side="right" className="z-50">
+            <SheetHeader>
+              <SheetTitle>Menu</SheetTitle>
+            </SheetHeader>
+            <nav className="flex flex-col gap-2 mt-4">
+              <Button
+                variant={activeTab === "wallet" ? "default" : "ghost"}
+                className="justify-start"
+                onClick={() => {
+                  setActiveTab(Tab.Wallet);
+                  setCurrentScreen(Screen.Home);
+                  setIsOpen(false);
+                }}
+              >
+                Wallet
+              </Button>
+              <Button
+                variant={activeTab === "settings" ? "default" : "ghost"}
+                className="justify-start"
+                onClick={() => {
+                  setActiveTab(Tab.Settings);
+                  setIsOpen(false);
+                }}
+              >
+                Settings
+              </Button>
+            </nav>
+          </SheetContent>
+        </Sheet>
+      </div>
     </header>
   );
 }
