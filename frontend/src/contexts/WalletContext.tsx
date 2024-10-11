@@ -4,12 +4,11 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useContext,
 } from "react";
 import { FedimintWallet } from "@fedimint/core-web";
 import { WALLET_ACTION_TYPE } from "@/types";
-
-const FEDI_TESTNET_INVITE_CODE =
-  "fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75";
+import { AppContext } from "./AppContext";
 
 export interface WalletState {
   wallet: FedimintWallet | null;
@@ -56,6 +55,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [state, dispatch] = useReducer(walletReducer, initialState);
   const [isOpen, setIsOpen] = useState(false);
+  const { state: appState } = useContext(AppContext);
 
   const checkIsOpen = useCallback(() => {
     if (state.wallet && isOpen !== state.wallet.isOpen()) {
@@ -64,28 +64,27 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [state.wallet, isOpen]);
 
   useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
     const initializeWallet = async () => {
+      if (!appState.isLoggedIn || state.wallet) {
+        return;
+      }
+      console.log("Initializing wallet");
+
       try {
         const wallet = new FedimintWallet();
         await wallet.open();
-
-        if (!wallet.isOpen()) {
-          await wallet.joinFederation(FEDI_TESTNET_INVITE_CODE);
-        }
 
         dispatch({ type: WALLET_ACTION_TYPE.SET_WALLET, payload: wallet });
         dispatch({ type: WALLET_ACTION_TYPE.SET_OPEN });
         console.log("Wallet initialized and connected to federation");
 
         // Set up balance subscription
-        const unsubscribe = wallet.balance.subscribeBalance((balance) => {
+        unsubscribe = wallet.balance.subscribeBalance((balance) => {
           checkIsOpen();
           console.log("Current balance:", balance);
         });
-
-        return () => {
-          unsubscribe();
-        };
       } catch (err) {
         console.error("Error initializing wallet:", err);
         dispatch({
@@ -97,7 +96,13 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     initializeWallet();
-  }, [checkIsOpen]);
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [appState.isLoggedIn, state.wallet, checkIsOpen]);
 
   const contextValue = {
     state,

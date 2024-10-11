@@ -11,7 +11,12 @@
       "128": "repl-ex.ico"
     }
   },
-  "permissions": ["storage"],
+  "permissions": ["identity", "storage"],
+  "host_permissions": [
+    "https://replit.com/*",
+    "https://replex.replit.app/*",
+    "https://d41388c1-73da-437f-b0b7-62f215a91554-00-3577uk1dqrjza.picard.replit.dev/*"
+  ],
   "icons": {
     "16": "repl-ex.ico",
     "48": "repl-ex.ico",

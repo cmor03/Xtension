@@ -13,6 +13,7 @@ import {
   useAppActiveTab,
   useAppSetActiveTab,
   useAppSetCurrentScreen,
+  useAppUser,
 } from "../hooks/useApp";
 import { WalletContext } from "../contexts/WalletContext";
 
@@ -22,6 +23,8 @@ export default function Header() {
   const setCurrentScreen = useAppSetCurrentScreen();
   const [isOpen, setIsOpen] = useState(false);
   const { state: walletState } = useContext(WalletContext);
+  const user = useAppUser();
+  console.log("user", user);
 
   return (
     <header className="flex justify-between items-center py-2 px-4 border-b relative">
@@ -34,7 +37,9 @@ export default function Header() {
       >
         repl-ex
       </h1>
-      <p className="text-xs text-muted-foreground">me@repl-ex.com</p>
+      {user && (
+        <p className="text-xs text-muted-foreground">{user.name}@repl-ex.com</p>
+      )}
       <div className="flex items-center">
         <div
           className={`w-2 h-2 rounded-full mr-2 ${
