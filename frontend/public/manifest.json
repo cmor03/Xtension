@@ -13,14 +13,15 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://replit.com/*"],
-      "js": ["content.js"]
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js", "content.js"],
+      "run_at": "document_end"
     }
   ],
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": ["identity", "storage", "tabs"],
+  "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": [
     "https://replit.com/*",
     "https://replex.replit.app/*",

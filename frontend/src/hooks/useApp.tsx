@@ -69,3 +69,14 @@ export const useAppSetXAPIKey = (): React.Dispatch<string | null> => {
   return (payload: string | null) =>
     dispatch({ type: APP_ACTION_TYPE.SET_X_API_KEY, payload });
 };
+
+export const useAppWebpageContent = (): string | null => {
+  const { state } = useApp();
+  return state.webpageContent;
+};
+
+export const useAppSetWebpageContent = (): React.Dispatch<string | null> => {
+  const dispatch = useAppDispatch();
+  return (payload: string | null) =>
+    dispatch({ type: APP_ACTION_TYPE.SET_WEBPAGE_CONTENT, payload });
+};

@@ -7,6 +7,7 @@ interface AppState {
   isLoggedIn: boolean;
   user: User | null;
   XAPIkey: string | null;
+  webpageContent: string | null;
 }
 
 export type AppAction =
@@ -15,6 +16,7 @@ export type AppAction =
   | { type: APP_ACTION_TYPE.SET_LOGGED_IN; payload: boolean }
   | { type: APP_ACTION_TYPE.SET_USER; payload: User | null }
   | { type: APP_ACTION_TYPE.SET_X_API_KEY; payload: string | null }
+  | { type: APP_ACTION_TYPE.SET_WEBPAGE_CONTENT; payload: string | null }
   | { type: "INIT"; payload: AppState };
 
 export interface AppContextValue {
@@ -28,6 +30,7 @@ const defaultState: AppState = {
   isLoggedIn: false,
   user: null,
   XAPIkey: null,
+  webpageContent: null,
 };
 
 const makeInitialState = (): AppState => {
@@ -55,6 +58,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
         return { ...state, user: action.payload };
       case APP_ACTION_TYPE.SET_X_API_KEY:
         return { ...state, XAPIkey: action.payload };
+      case APP_ACTION_TYPE.SET_WEBPAGE_CONTENT:
+        return { ...state, webpageContent: action.payload };
       case "INIT":
         return action.payload;
       default:
@@ -89,7 +94,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   useEffect(() => {
-    // This effect is now only responsible for saving state changes
     const saveState = async () => {
       await chrome.storage.local.set({ appState: state });
       console.log("App state saved to Chrome storage:", state);

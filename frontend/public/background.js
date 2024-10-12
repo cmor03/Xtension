@@ -2,6 +2,8 @@ console.log("Background script loaded");
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log("Message received in background script:", request);
+  
+  // Existing "buildWithAgent" action
   if (request.action === "buildWithAgent") {
     console.log("Creating new tab for Replit");
     chrome.tabs.create(
@@ -38,6 +40,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }
       }
     );
+  }
+
+  // New action for content script injection confirmation
+  if (request.action === "contentScriptInjected") {
+    console.log("Content script has been injected");
   }
   return true; // Indicates that the response will be sent asynchronously
 });
