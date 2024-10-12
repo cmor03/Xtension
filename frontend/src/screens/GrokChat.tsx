@@ -18,6 +18,7 @@ export default function GrokChat() {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [isWebpageGrabbed, setIsWebpageGrabbed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const xAiApi = useXAiApi();
@@ -35,29 +36,22 @@ export default function GrokChat() {
 
   const grabWebpageContent = () => {
     console.log("Attempting to grab webpage content");
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    setError(null); // Clear any previous errors
+    chrome.runtime.sendMessage({ action: "getPageContent" }, (response) => {
       if (chrome.runtime.lastError) {
-        console.error("Error:", chrome.runtime.lastError.message);
-        return;
+        console.error("Error sending message to background script:", chrome.runtime.lastError);
+        setError("Failed to communicate with the extension. Please try reloading the page.");
+      } else if (response && response.content) {
+        console.log("Webpage content received:", response.content.substring(0, 100) + "...");
+        setAppWebpageContent(response.content);
+        setIsWebpageGrabbed(true);
+      } else if (response && response.error) {
+        console.error("Error getting page content:", response.error);
+        setError(response.error);
+      } else {
+        console.error("Failed to receive content");
+        setError("Failed to receive content from the page. Please try again.");
       }
-      
-      const activeTab = tabs[0];
-      if (!activeTab || !activeTab.id) {
-        console.error("No active tab found");
-        return;
-      }
-
-      chrome.tabs.sendMessage(activeTab.id, { action: "getPageContent" }, (response) => {
-        if (chrome.runtime.lastError) {
-          console.error("Error sending message to content script:", chrome.runtime.lastError);
-        } else if (response && response.content) {
-          console.log("Webpage content received:", response.content.substring(0, 100) + "...");
-          setAppWebpageContent(response.content);
-          setIsWebpageGrabbed(true);
-        } else {
-          console.error("Failed to receive content");
-        }
-      });
     });
   };
 
@@ -65,6 +59,7 @@ export default function GrokChat() {
     if (isWebpageGrabbed) {
       console.log("Ungrabbing webpage content");
       setIsWebpageGrabbed(false);
+      setAppWebpageContent("");
     } else {
       grabWebpageContent();
     }
@@ -74,7 +69,7 @@ export default function GrokChat() {
     if (input.trim() === "" || isStreaming || !xAiApi) return;
     const newMessages: Message[] = [
       ...messages,
-      { role: "user", content: input },
+      { role: "user", content: isWebpageGrabbed ? `Webpage content: ${webpageContent}\n${input}` : input },
     ];
     setMessages(newMessages);
     setInput("");
@@ -124,14 +119,6 @@ export default function GrokChat() {
       setTimeout(() => {
         inputRef.current?.focus();
       }, 0);
-    }
-  };
-
-  const handleSetInput = (value: string) => {
-    if (webpageContent) {
-      setInput(`Webpage content: ${webpageContent}\n${value}`);
-    } else {
-      setInput(value);
     }
   };
 
@@ -186,23 +173,28 @@ export default function GrokChat() {
           ))}
         </div>
       </div>
+      {error && (
+        <div className="text-red-500 mb-2 px-4">
+          Error: {error}
+        </div>
+      )}
       <div className="mt-4">
         <div className="flex space-x-2 fixed bottom-0 left-0 right-0 p-4 bg-gray">
-            <Button
-              onClick={toggleWebpageGrab}
-              disabled={isStreaming}
-              className={cn(
-                "p-2",
-                isWebpageGrabbed ? "text-blue-500" : "text-gray-500"
-              )}
-              variant="outline"
-            >
-              {isWebpageGrabbed ? <FaHandRock /> : <FaRegHandPaper />}
-            </Button>
+          <Button
+            onClick={toggleWebpageGrab}
+            disabled={isStreaming}
+            className={cn(
+              "p-2",
+              isWebpageGrabbed ? "text-blue-500" : "text-gray-500"
+            )}
+            variant="outline"
+          >
+            {isWebpageGrabbed ? <FaHandRock /> : <FaRegHandPaper />}
+          </Button>
           <Input
             ref={inputRef}
             value={input}
-            onChange={(e) => handleSetInput(e.target.value)}
+            onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
             onKeyPress={(e) => e.key === "Enter" && handleSend()}
             disabled={isStreaming}
