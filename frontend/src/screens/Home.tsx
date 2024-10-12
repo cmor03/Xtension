@@ -4,18 +4,19 @@ import BalanceDisplay from "../components/BalanceDisplay";
 import ActionButtons from "../components/ActionButtons";
 import SendScreen from "./Send";
 import ReceiveScreen from "./Receive";
-import wallet from "../wallet";
 import { Screen } from "../types";
 import { useAppCurrentScreen, useAppSetCurrentScreen } from "@/hooks/useApp";
+import { useWalletInstance } from "@/hooks/useWallet";
 
 const useIsOpen = () => {
+  const wallet = useWalletInstance();
   const [open, setIsOpen] = useState(false);
 
   const checkIsOpen = useCallback(() => {
     if (open !== wallet.isOpen()) {
       setIsOpen(wallet.isOpen());
     }
-  }, [open]);
+  }, [open, wallet]);
 
   useEffect(() => {
     checkIsOpen();
@@ -25,6 +26,7 @@ const useIsOpen = () => {
 };
 
 const useBalance = (checkIsOpen: () => void) => {
+  const wallet = useWalletInstance();
   const [balance, setBalance] = useState(0);
 
   useEffect(() => {
@@ -36,7 +38,7 @@ const useBalance = (checkIsOpen: () => void) => {
     return () => {
       unsubscribe();
     };
-  }, [checkIsOpen]);
+  }, [checkIsOpen, wallet]);
 
   return balance;
 };

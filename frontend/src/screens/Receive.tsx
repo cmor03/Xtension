@@ -2,13 +2,14 @@ import { useState } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import wallet from "../wallet";
+import { useWalletInstance } from "../hooks/useWallet";
 
 interface ReceiveScreenProps {
   onComplete: () => void;
 }
 
 export default function ReceiveScreen({ onComplete }: ReceiveScreenProps) {
+  const wallet = useWalletInstance();
   const [amount, setAmount] = useState("");
   const [invoice, setInvoice] = useState("");
   const [error, setError] = useState("");
