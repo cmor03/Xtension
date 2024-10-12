@@ -4,6 +4,7 @@ import Layout from "./components/Layout";
 import Header from "./components/Header";
 import HomeScreen from "./screens/Home";
 import SettingsScreen from "./screens/Settings";
+import GrokChat from "./screens/GrokChat";
 
 function Content() {
   const activeTab = useAppActiveTab();
@@ -11,10 +12,10 @@ function Content() {
   return (
     <Layout>
       <Header />
-      <main className="flex-grow p-6">
-        <div className="max-w-4xl mx-auto">
-          {activeTab === Tab.Wallet ? <HomeScreen /> : <SettingsScreen />}
-        </div>
+      <main className="flex-grow overflow-hidden">
+        {activeTab === Tab.Wallet && <HomeScreen />}
+        {activeTab === Tab.Settings && <SettingsScreen />}
+        {activeTab === Tab.GrokChat && <GrokChat />}
       </main>
     </Layout>
   );

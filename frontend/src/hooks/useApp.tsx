@@ -58,3 +58,24 @@ export const useAppSetIsLoggedIn = (): React.Dispatch<boolean> => {
   return (payload: boolean) =>
     dispatch({ type: APP_ACTION_TYPE.SET_LOGGED_IN, payload });
 };
+
+export const useAppXAiAPIKey = (): string | null => {
+  const { state } = useApp();
+  return state.xAiAPIkey;
+};
+
+export const useAppSetXAiAPIKey = (): React.Dispatch<string | null> => {
+  const dispatch = useAppDispatch();
+  return (payload: string | null) =>
+    dispatch({ type: APP_ACTION_TYPE.SET_XAI_API_KEY, payload });
+};
+export const useAppXAPIKey = (): string | null => {
+  const { state } = useApp();
+  return state.XAPIkey;
+};
+
+export const useAppSetXAPIKey = (): React.Dispatch<string | null> => {
+  const dispatch = useAppDispatch();
+  return (payload: string | null) =>
+    dispatch({ type: APP_ACTION_TYPE.SET_X_API_KEY, payload });
+};

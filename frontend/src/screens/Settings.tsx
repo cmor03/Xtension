@@ -2,6 +2,7 @@ import { Separator } from "../components/ui/separator";
 import ReplitAccountSection from "../components/settings/ReplitAccountSection";
 import LightningAddressSection from "../components/settings/LightningAddressSection";
 import SupportSection from "../components/settings/SupportSection";
+import XAiAPIKeySection from "@/components/settings/XAiAPIKeySection";
 
 export default function SettingsScreen() {
   return (
@@ -10,6 +11,8 @@ export default function SettingsScreen() {
       <Separator className="mb-8" />
       <div className="space-y-12">
         <ReplitAccountSection />
+        <XAiAPIKeySection />
+
         <LightningAddressSection />
         <SupportSection />
       </div>

@@ -6,6 +6,9 @@ interface AppState {
   currentScreen: Screen;
   isLoggedIn: boolean;
   user: User | null;
+  xAiAPIkey: string | null;
+  XAPIkey: string| null;
+  
 }
 
 export type AppAction =
@@ -13,6 +16,8 @@ export type AppAction =
   | { type: APP_ACTION_TYPE.SET_CURRENT_SCREEN; payload: Screen }
   | { type: APP_ACTION_TYPE.SET_LOGGED_IN; payload: boolean }
   | { type: APP_ACTION_TYPE.SET_USER; payload: User | null }
+  | { type: APP_ACTION_TYPE.SET_XAI_API_KEY; payload: string | null }
+  | { type: APP_ACTION_TYPE.SET_X_API_KEY; payload: string | null }
   | { type: "INIT"; payload: AppState };
 
 export interface AppContextValue {
@@ -25,6 +30,8 @@ const defaultState: AppState = {
   currentScreen: Screen.Home,
   isLoggedIn: false,
   user: null,
+  xAiAPIkey: null,
+  XAPIkey: null,
 };
 
 const makeInitialState = (): AppState => {
@@ -50,6 +57,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
         return { ...state, isLoggedIn: action.payload };
       case APP_ACTION_TYPE.SET_USER:
         return { ...state, user: action.payload };
+      case APP_ACTION_TYPE.SET_XAI_API_KEY:
+        return { ...state, xAiAPIkey: action.payload };
+      case APP_ACTION_TYPE.SET_X_API_KEY:
+        return { ...state, XAPIkey: action.payload };
       case "INIT":
         return action.payload;
       default:

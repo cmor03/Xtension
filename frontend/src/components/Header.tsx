@@ -84,6 +84,17 @@ export default function Header() {
               >
                 Settings
               </Button>
+              <Button
+                variant={activeTab === Tab.GrokChat ? "default" : "ghost"}
+                className="justify-start"
+                onClick={() => {
+                  setActiveTab(Tab.GrokChat);
+                  setCurrentScreen(Screen.GrokChat);
+                  setIsOpen(false);
+                }}
+              >
+                GrokChat
+              </Button>
             </nav>
           </SheetContent>
         </Sheet>
