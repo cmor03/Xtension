@@ -82,17 +82,6 @@ export default function Header() {
                 GrokChat {!xAiApi && "(API key not set)"}
               </Button>
               <Button
-                variant={activeTab === Tab.Agent ? "default" : "ghost"}
-                className="justify-start"
-                onClick={() => {
-                  setActiveTab(Tab.Agent);
-                  setCurrentScreen(Screen.Agent);
-                  setIsOpen(false);
-                }}
-              >
-                Agent
-              </Button>
-              <Button
                 variant={activeTab === Tab.Wallet ? "default" : "ghost"}
                 className="justify-start"
                 onClick={() => {
