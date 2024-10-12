@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect, useContext } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AppContext } from "../contexts/AppContext";
 import { cn } from "../lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useXAiSendMessage } from "../hooks/useXAi";
 
 interface Message {
   role: "user" | "assistant";
@@ -17,6 +17,7 @@ export default function GrokChat() {
   const [isStreaming, setIsStreaming] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const sendMessage = useXAiSendMessage();
 
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
@@ -28,7 +29,7 @@ export default function GrokChat() {
   useEffect(scrollToBottom, [messages]);
 
   const handleSend = async () => {
-    if (input.trim() === "" || isStreaming) return;
+    if (input.trim() === "" || isStreaming || !sendMessage) return;
     const newMessages: Message[] = [
       ...messages,
       { role: "user", content: input },
@@ -36,32 +37,17 @@ export default function GrokChat() {
     setMessages(newMessages);
     setInput("");
     setIsStreaming(true);
-    console.log(import.meta.env.VITE_XAI_API_KEY);
+
     try {
-      const response = await fetch("https://api.x.ai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${import.meta.env.VITE_XAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "grok-2-mini-public",
-          messages: newMessages,
-          temperature: 0.7,
-          stream: true,
-        }),
-      });
+      const stream = await sendMessage(newMessages);
+      if (!stream) throw new Error("No stream returned");
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const reader = response.body?.getReader();
+      const reader = stream.getReader();
       const decoder = new TextDecoder();
       let assistantMessage = "";
 
       while (true) {
-        const { done, value } = await reader!.read();
+        const { done, value } = await reader.read();
         if (done) break;
 
         const chunk = decoder.decode(value);

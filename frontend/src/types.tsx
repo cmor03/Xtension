@@ -32,3 +32,8 @@ export enum WALLET_ACTION_TYPE {
   SET_OPEN = "SET_OPEN",
   SET_ERROR = "SET_ERROR",
 }
+
+export enum XAI_ACTION_TYPE {
+  INIT = "INIT",
+  SET_API_KEY = "SET_API_KEY",
+}

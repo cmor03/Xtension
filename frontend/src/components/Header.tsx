@@ -16,6 +16,7 @@ import {
   useAppUser,
 } from "../hooks/useApp";
 import { WalletContext } from "../contexts/WalletContext";
+import { useXAiApi } from "../hooks/useXAi";
 
 export default function Header() {
   const activeTab = useAppActiveTab();
@@ -24,7 +25,16 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const { state: walletState } = useContext(WalletContext);
   const user = useAppUser();
+  const xAiApi = useXAiApi();
   console.log("user", user);
+
+  const handleGrokChatClick = () => {
+    if (xAiApi) {
+      setActiveTab(Tab.GrokChat);
+      setCurrentScreen(Screen.GrokChat);
+      setIsOpen(false);
+    }
+  };
 
   return (
     <header className="flex justify-between items-center py-2 px-4 border-b relative">
@@ -66,13 +76,10 @@ export default function Header() {
               <Button
                 variant={activeTab === Tab.GrokChat ? "default" : "ghost"}
                 className="justify-start"
-                onClick={() => {
-                  setActiveTab(Tab.GrokChat);
-                  setCurrentScreen(Screen.GrokChat);
-                  setIsOpen(false);
-                }}
+                onClick={handleGrokChatClick}
+                disabled={!xAiApi}
               >
-                GrokChat
+                GrokChat {!xAiApi && "(API key not set)"}
               </Button>
               <Button
                 variant={activeTab === Tab.Agent ? "default" : "ghost"}
