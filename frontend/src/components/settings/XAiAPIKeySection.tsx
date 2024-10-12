@@ -2,15 +2,18 @@ import { useCallback } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Separator } from "@radix-ui/react-separator";
-import { useAppXAiAPIKey, useAppSetXAiAPIKey } from "@/hooks/useApp";
+import { useXAiApiKey, useXAiSetApiKey } from "@/hooks/useXAi";
 
 export default function XAiAPIKeySection() {
-  const xAiAPIKey = useAppXAiAPIKey();
-  const setXAiAPIKey = useAppSetXAiAPIKey();
+  const xAiAPIKey = useXAiApiKey();
+  const setXAiAPIKey = useXAiSetApiKey();
 
-  const handleSaveKey = useCallback((newKey: string) => {
-    setXAiAPIKey(newKey);
-  }, [setXAiAPIKey]);
+  const handleSaveKey = useCallback(
+    (newKey: string) => {
+      setXAiAPIKey(newKey);
+    },
+    [setXAiAPIKey]
+  );
 
   const handleRemoveKey = useCallback(() => {
     setXAiAPIKey(null);
