@@ -9,7 +9,7 @@ import { FaRegHandPaper, FaHandRock } from "react-icons/fa";
 import { useAppSetWebpageContent, useAppWebpageContent } from "@/hooks/useApp";
 
 interface Message {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
   content: string;
 }
 
@@ -35,18 +35,29 @@ export default function GrokChat() {
 
   const grabWebpageContent = () => {
     console.log("Attempting to grab webpage content");
-    chrome.runtime.sendMessage({ action: "getPageContent" }, (response) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (chrome.runtime.lastError) {
         console.error("Error:", chrome.runtime.lastError.message);
         return;
       }
-      if (response && response.content) {
-        console.log("Webpage content grabbed:", response.content.substring(0, 100) + "...");
-        setAppWebpageContent(response.content);
-        setIsWebpageGrabbed(true);
-      } else {
-        console.log("No content received from webpage");
+      
+      const activeTab = tabs[0];
+      if (!activeTab || !activeTab.id) {
+        console.error("No active tab found");
+        return;
       }
+
+      chrome.tabs.sendMessage(activeTab.id, { action: "getPageContent" }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error("Error sending message to content script:", chrome.runtime.lastError);
+        } else if (response && response.content) {
+          console.log("Webpage content received:", response.content.substring(0, 100) + "...");
+          setAppWebpageContent(response.content);
+          setIsWebpageGrabbed(true);
+        } else {
+          console.error("Failed to receive content");
+        }
+      });
     });
   };
 

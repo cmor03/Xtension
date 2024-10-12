@@ -86,11 +86,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   const [state, dispatch] = useReducer(appReducer, makeInitialState());
 
   useEffect(() => {
-    chrome.storage.local.get(["appState"], (result) => {
+    chrome.storage.local.get(["appState", "webpageContent"], (result) => {
       if (result.appState) {
         dispatch({ type: "INIT", payload: result.appState });
       }
+      if (result.webpageContent) {
+        dispatch({ type: APP_ACTION_TYPE.SET_WEBPAGE_CONTENT, payload: result.webpageContent });
+      }
     });
+
+    const messageListener = (request: { action: string; content?: string }) => {
+      if (request.action === "UPDATE_WEBPAGE_CONTENT" && request.content) {
+        dispatch({ type: APP_ACTION_TYPE.SET_WEBPAGE_CONTENT, payload: request.content });
+      }
+    };
+
+    chrome.runtime.onMessage.addListener(messageListener);
+
+    return () => {
+      chrome.runtime.onMessage.removeListener(messageListener);
+    };
   }, []);
 
   useEffect(() => {
