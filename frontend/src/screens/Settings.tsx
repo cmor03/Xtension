@@ -1,15 +1,18 @@
-import { Card, CardContent, CardHeader } from "../components/ui/card";
+import { Separator } from "../components/ui/separator";
+import ReplitAccountSection from "../components/settings/ReplitAccountSection";
+import LightningAddressSection from "../components/settings/LightningAddressSection";
+import SupportSection from "../components/settings/SupportSection";
 
 export default function SettingsScreen() {
   return (
-    <Card className="w-full max-w-md mx-auto border-none">
-      <CardHeader>
-        <h2 className="text-xl font-bold">Settings</h2>
-      </CardHeader>
-      <CardContent>
-        {/* Add your settings options here */}
-        <p>Settings options will go here.</p>
-      </CardContent>
-    </Card>
+    <div className="container mx-auto min-h-screen max-w-2xl px-4">
+      <h1 className="text-4xl font-bold mb-6">Settings</h1>
+      <Separator className="mb-8" />
+      <div className="space-y-12">
+        <ReplitAccountSection />
+        <LightningAddressSection />
+        <SupportSection />
+      </div>
+    </div>
   );
 }

@@ -11,7 +11,7 @@ import { WALLET_ACTION_TYPE } from "@/types";
 import { AppContext } from "./AppContext";
 
 export interface WalletState {
-  wallet: FedimintWallet | null;
+  wallet: FedimintWallet | undefined;
   isOpen: boolean;
   error: string | null;
 }
@@ -27,7 +27,7 @@ export interface WalletContextValue {
 }
 
 const initialState: WalletState = {
-  wallet: null,
+  wallet: undefined,
   isOpen: false,
   error: null,
 };
@@ -67,7 +67,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
     let unsubscribe: (() => void) | undefined;
 
     const initializeWallet = async () => {
-      if (!appState.isLoggedIn || state.wallet) {
+      if (state.wallet) {
         return;
       }
       console.log("Initializing wallet");
@@ -103,6 +103,11 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     };
   }, [appState.isLoggedIn, state.wallet, checkIsOpen]);
+
+  if (!state.wallet) {
+    // Render a loading state or null while the wallet is being initialized
+    return null;
+  }
 
   const contextValue = {
     state,

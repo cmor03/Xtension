@@ -1,2 +1,2 @@
 shad *COMPONENTS:
-  pnpm dlx shadcn-ui@latest add {{COMPONENTS}}
+  pnpm dlx shadcn@latest add {{COMPONENTS}}

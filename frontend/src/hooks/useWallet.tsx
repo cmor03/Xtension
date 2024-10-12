@@ -7,7 +7,13 @@ export const useWallet = (): WalletContextValue => {
   if (context === undefined) {
     throw new Error("useWallet must be used within a WalletProvider");
   }
+  console.log("context", context);
   return context;
+};
+
+export const useWalletIsOpen = (): boolean => {
+  const { state } = useWallet();
+  return state.isOpen;
 };
 
 export const useWalletInstance = (): FedimintWallet => {
