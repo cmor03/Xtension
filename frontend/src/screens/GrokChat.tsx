@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "../lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useXAiSendMessage } from "../hooks/useXAi";
+import { useXAiApi } from "@/hooks/useXAi";
 
 interface Message {
   role: "user" | "assistant";
@@ -17,7 +17,7 @@ export default function GrokChat() {
   const [isStreaming, setIsStreaming] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const sendMessage = useXAiSendMessage();
+  const xAiApi = useXAiApi();
 
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
@@ -29,7 +29,7 @@ export default function GrokChat() {
   useEffect(scrollToBottom, [messages]);
 
   const handleSend = async () => {
-    if (input.trim() === "" || isStreaming || !sendMessage) return;
+    if (input.trim() === "" || isStreaming || !xAiApi) return;
     const newMessages: Message[] = [
       ...messages,
       { role: "user", content: input },
@@ -39,7 +39,7 @@ export default function GrokChat() {
     setIsStreaming(true);
 
     try {
-      const stream = await sendMessage(newMessages);
+      const stream = await xAiApi.sendMessageStream(newMessages);
       if (!stream) throw new Error("No stream returned");
 
       const reader = stream.getReader();

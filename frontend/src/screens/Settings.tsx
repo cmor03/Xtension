@@ -12,7 +12,6 @@ export default function SettingsScreen() {
       <div className="space-y-12">
         <ReplitAccountSection />
         <XAiAPIKeySection />
-
         <LightningAddressSection />
         <SupportSection />
       </div>
