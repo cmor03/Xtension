@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import HomeScreen from "./screens/Home";
 import SettingsScreen from "./screens/Settings";
 import GrokChat from "./screens/GrokChat";
+import Agent from "./screens/Agent";
 
 function Content() {
   const activeTab = useAppActiveTab();
@@ -16,6 +17,7 @@ function Content() {
         {activeTab === Tab.Wallet && <HomeScreen />}
         {activeTab === Tab.Settings && <SettingsScreen />}
         {activeTab === Tab.GrokChat && <GrokChat />}
+        {activeTab === Tab.Agent && <Agent />}
       </main>
     </Layout>
   );

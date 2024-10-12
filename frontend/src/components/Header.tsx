@@ -64,7 +64,29 @@ export default function Header() {
             </SheetHeader>
             <nav className="flex flex-col gap-2 mt-4">
               <Button
-                variant={activeTab === "wallet" ? "default" : "ghost"}
+                variant={activeTab === Tab.GrokChat ? "default" : "ghost"}
+                className="justify-start"
+                onClick={() => {
+                  setActiveTab(Tab.GrokChat);
+                  setCurrentScreen(Screen.GrokChat);
+                  setIsOpen(false);
+                }}
+              >
+                GrokChat
+              </Button>
+              <Button
+                variant={activeTab === Tab.Agent ? "default" : "ghost"}
+                className="justify-start"
+                onClick={() => {
+                  setActiveTab(Tab.Agent);
+                  setCurrentScreen(Screen.Agent);
+                  setIsOpen(false);
+                }}
+              >
+                Agent
+              </Button>
+              <Button
+                variant={activeTab === Tab.Wallet ? "default" : "ghost"}
                 className="justify-start"
                 onClick={() => {
                   setActiveTab(Tab.Wallet);
@@ -83,17 +105,6 @@ export default function Header() {
                 }}
               >
                 Settings
-              </Button>
-              <Button
-                variant={activeTab === Tab.GrokChat ? "default" : "ghost"}
-                className="justify-start"
-                onClick={() => {
-                  setActiveTab(Tab.GrokChat);
-                  setCurrentScreen(Screen.GrokChat);
-                  setIsOpen(false);
-                }}
-              >
-                GrokChat
               </Button>
             </nav>
           </SheetContent>

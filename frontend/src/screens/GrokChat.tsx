@@ -25,14 +25,14 @@ export default function GrokChat() {
     }
   };
 
-
   useEffect(scrollToBottom, [messages]);
-
-  // ... existing useEffect and scrollToBottom function ...
 
   const handleSend = async () => {
     if (input.trim() === "" || isStreaming) return;
-    const newMessages: Message[] = [...messages, { role: "user", content: input }];
+    const newMessages: Message[] = [
+      ...messages,
+      { role: "user", content: input },
+    ];
     setMessages(newMessages);
     setInput("");
     setIsStreaming(true);
@@ -120,29 +120,29 @@ export default function GrokChat() {
                 )}
               >
                 <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
+                  remarkPlugins={[remarkGfm]}
+                  components={{
                     p: ({ node, ...props }) => (
-                        <p className="mb-2" {...props} />
+                      <p className="mb-2" {...props} />
                     ),
                     pre: ({ node, ...props }) => (
-                        <pre
+                      <pre
                         className="bg-gray-800 text-white p-2 rounded"
                         {...props}
-                        />
+                      />
                     ),
                     code: ({ node, inline, ...props }) =>
-                        inline ? (
+                      inline ? (
                         <code
-                            className="bg-gray-200 text-red-500 px-1 rounded"
-                            {...props}
+                          className="bg-gray-200 text-red-500 px-1 rounded"
+                          {...props}
                         />
-                        ) : (
+                      ) : (
                         <code {...props} />
-                        ),
-                    }}
+                      ),
+                  }}
                 >
-                    {message.content}
+                  {message.content}
                 </ReactMarkdown>
               </div>
             </div>

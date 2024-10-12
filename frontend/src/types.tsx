@@ -3,12 +3,14 @@ export enum Screen {
   Send = "send",
   Receive = "receive",
   GrokChat = "grokchat",
+  Agent = "agent",
 }
 
 export enum Tab {
   Wallet = "wallet",
   Settings = "settings",
   GrokChat = "grokchat",
+  Agent = "agent",
 }
 
 export interface User {
