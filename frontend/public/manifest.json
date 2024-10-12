@@ -14,19 +14,17 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["contentScript.js", "content.js"],
-      "run_at": "document_idle"
+      "js": ["contentScript.js"],
+      "run_at": "document_end"
     }
   ],
   "permissions": [
     "activeTab",
     "scripting",
-    "storage"
+    "storage",
+    "tabs"
   ],
   "host_permissions": [
-    "https://replit.com/*",
-    "https://replex.replit.app/*",
-    "https://d41388c1-73da-437f-b0b7-62f215a91554-00-3577uk1dqrjza.picard.replit.dev/*",
     "<all_urls>"
   ],
   "icons": {
