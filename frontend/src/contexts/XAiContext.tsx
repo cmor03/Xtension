@@ -21,15 +21,27 @@ const defaultState: XAiState = {
   api: null,
 };
 
+const makeInitialState = (): XAiState => {
+  return defaultState;
+};
+
 function xAiReducer(state: XAiState, action: XAiAction): XAiState {
-  switch (action.type) {
-    case XAI_ACTION_TYPE.SET_API_KEY:
-      return { ...state, apiKey: action.payload };
-    case XAI_ACTION_TYPE.INIT:
-      return action.payload;
-    default:
-      return state;
+  const newState = (() => {
+    switch (action.type) {
+      case XAI_ACTION_TYPE.SET_API_KEY:
+        return { ...state, apiKey: action.payload };
+      case XAI_ACTION_TYPE.INIT:
+        return action.payload;
+      default:
+        return state;
+    }
+  })();
+
+  if (JSON.stringify(newState) !== JSON.stringify(state)) {
+    chrome.storage.local.set({ xAiState: newState });
+    console.log("XAi state saved to Chrome storage:", newState);
   }
+  return newState;
 }
 
 export const XAiContext = createContext<XAiContextValue>({
@@ -40,7 +52,15 @@ export const XAiContext = createContext<XAiContextValue>({
 export const XAiProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [state, dispatch] = useReducer(xAiReducer, defaultState);
+  const [state, dispatch] = useReducer(xAiReducer, makeInitialState());
+
+  useEffect(() => {
+    chrome.storage.local.get(["xAiState"], (result) => {
+      if (result.xAiState) {
+        dispatch({ type: XAI_ACTION_TYPE.INIT, payload: result.xAiState });
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (state.apiKey) {

@@ -31,8 +31,3 @@ export const useXAiApi = (): XAiApi | null => {
   const { state } = useXAi();
   return state.api;
 };
-
-export const useXAiSendMessage = () => {
-  const api = useXAiApi();
-  return api ? api.sendMessage.bind(api) : null;
-};
