@@ -22,7 +22,7 @@ export default function XAiAPIKeySection() {
   return (
     <>
       <div className="flex flex-col space-y-1">
-        <span className="text-xl font-semibold">X AI API Key</span>
+        <span className="text-xl font-semibold">X <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">AI</span> API Key</span>
         <p className="text-sm text-muted-foreground">
           Enter your X AI API key to enable AI-powered features
         </p>

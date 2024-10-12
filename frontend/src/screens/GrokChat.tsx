@@ -136,7 +136,7 @@ export default function GrokChat() {
         </div>
       </div>
       <div className="mt-4">
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 fixed bottom-0 left-0 right-0 p-4 bg-gray">
           <Input
             ref={inputRef}
             value={input}
