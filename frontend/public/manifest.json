@@ -13,18 +13,21 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://replit.com/*"],
-      "js": ["content.js"]
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js", "content.js"],
+      "run_at": "document_idle"
     }
   ],
-  "background": {
-    "service_worker": "background.js"
-  },
-  "permissions": ["identity", "storage", "tabs"],
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
   "host_permissions": [
     "https://replit.com/*",
     "https://replex.replit.app/*",
-    "https://d41388c1-73da-437f-b0b7-62f215a91554-00-3577uk1dqrjza.picard.replit.dev/*"
+    "https://d41388c1-73da-437f-b0b7-62f215a91554-00-3577uk1dqrjza.picard.replit.dev/*",
+    "<all_urls>"
   ],
   "icons": {
     "16": "repl-ex.ico",
@@ -54,5 +57,8 @@
       },
       "description": "Open/Close repl-ex"
     }
+  },
+  "background": {
+    "service_worker": "background.js"
   }
 }

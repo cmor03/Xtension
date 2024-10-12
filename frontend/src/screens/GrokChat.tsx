@@ -5,9 +5,11 @@ import { cn } from "../lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useXAiApi } from "@/hooks/useXAi";
+import { FaRegHandPaper, FaHandRock } from "react-icons/fa";
+import { useAppSetWebpageContent, useAppWebpageContent } from "@/hooks/useApp";
 
 interface Message {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
   content: string;
 }
 
@@ -15,9 +17,12 @@ export default function GrokChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isWebpageGrabbed, setIsWebpageGrabbed] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const xAiApi = useXAiApi();
+  const webpageContent = useAppWebpageContent();
+  const setAppWebpageContent = useAppSetWebpageContent();
 
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
@@ -27,6 +32,43 @@ export default function GrokChat() {
   };
 
   useEffect(scrollToBottom, [messages]);
+
+  const grabWebpageContent = () => {
+    console.log("Attempting to grab webpage content");
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (chrome.runtime.lastError) {
+        console.error("Error:", chrome.runtime.lastError.message);
+        return;
+      }
+      
+      const activeTab = tabs[0];
+      if (!activeTab || !activeTab.id) {
+        console.error("No active tab found");
+        return;
+      }
+
+      chrome.tabs.sendMessage(activeTab.id, { action: "getPageContent" }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error("Error sending message to content script:", chrome.runtime.lastError);
+        } else if (response && response.content) {
+          console.log("Webpage content received:", response.content.substring(0, 100) + "...");
+          setAppWebpageContent(response.content);
+          setIsWebpageGrabbed(true);
+        } else {
+          console.error("Failed to receive content");
+        }
+      });
+    });
+  };
+
+  const toggleWebpageGrab = () => {
+    if (isWebpageGrabbed) {
+      console.log("Ungrabbing webpage content");
+      setIsWebpageGrabbed(false);
+    } else {
+      grabWebpageContent();
+    }
+  };
 
   const handleSend = async () => {
     if (input.trim() === "" || isStreaming || !xAiApi) return;
@@ -85,10 +127,18 @@ export default function GrokChat() {
     }
   };
 
+  const handleSetInput = (value: string) => {
+    if (webpageContent) {
+      setInput(`Webpage content: ${webpageContent}\n${value}`);
+    } else {
+      setInput(value);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-grow overflow-hidden">
-        <div ref={chatContainerRef} className="h-full overflow-y-auto pr-4">
+        <div ref={chatContainerRef} className="h-full overflow-y-auto px-4">
           {messages.map((message, index) => (
             <div
               key={index}
@@ -99,25 +149,26 @@ export default function GrokChat() {
             >
               <div
                 className={cn(
-                  "p-3 rounded-2xl max-w-[70%]",
+                  "p-3 rounded-2xl max-w-[70%] text-left",
                   message.role === "user"
                     ? "bg-blue-500 text-white rounded-br-none"
                     : "bg-gray-100 text-gray-800 rounded-bl-none"
                 )}
+                style={{ alignSelf: "flex-start" }}
               >
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    p: ({ node, ...props }) => (
+                    p: ({ ...props }) => (
                       <p className="mb-2" {...props} />
                     ),
-                    pre: ({ node, ...props }) => (
+                    pre: ({ ...props }) => (
                       <pre
                         className="bg-gray-800 text-white p-2 rounded"
                         {...props}
                       />
                     ),
-                    code: ({ node, inline, ...props }) =>
+                    code: ({ inline, ...props }) =>
                       inline ? (
                         <code
                           className="bg-gray-200 text-red-500 px-1 rounded"
@@ -136,11 +187,22 @@ export default function GrokChat() {
         </div>
       </div>
       <div className="mt-4">
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 fixed bottom-0 left-0 right-0 p-4 bg-gray">
+            <Button
+              onClick={toggleWebpageGrab}
+              disabled={isStreaming}
+              className={cn(
+                "p-2",
+                isWebpageGrabbed ? "text-blue-500" : "text-gray-500"
+              )}
+              variant="outline"
+            >
+              {isWebpageGrabbed ? <FaHandRock /> : <FaRegHandPaper />}
+            </Button>
           <Input
             ref={inputRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => handleSetInput(e.target.value)}
             placeholder="Type your message..."
             onKeyPress={(e) => e.key === "Enter" && handleSend()}
             disabled={isStreaming}

@@ -2,32 +2,29 @@ import { useCallback } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Separator } from "@radix-ui/react-separator";
-import { useXAiApiKey, useXAiSetApiKey } from "@/hooks/useXAi";
+import { useAppXAPIKey, useAppSetXAPIKey } from "@/hooks/useApp";
 
-export default function XAiAPIKeySection() {
-  const xAiAPIKey = useXAiApiKey();
-  const setXAiAPIKey = useXAiSetApiKey();
+export default function XAPIKeySection() {
+  const xAPIKey = useAppXAPIKey();
+  const setXAPIKey = useAppSetXAPIKey();
 
-  const handleSaveKey = useCallback(
-    (newKey: string) => {
-      setXAiAPIKey(newKey);
-    },
-    [setXAiAPIKey]
-  );
+  const handleSaveKey = useCallback((newKey: string) => {
+    setXAPIKey(newKey);
+  }, [setXAPIKey]);
 
   const handleRemoveKey = useCallback(() => {
-    setXAiAPIKey(null);
-  }, [setXAiAPIKey]);
+    setXAPIKey(null);
+  }, [setXAPIKey]);
 
   return (
     <>
       <div className="flex flex-col space-y-1">
-        <span className="text-xl font-semibold">X <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">AI</span> API Key</span>
+        <span className="text-xl font-semibold">X API Key</span>
         <p className="text-sm text-muted-foreground">
-          Enter your X AI API key to enable AI-powered features
+          Enter your X API key to enable X-powered features
         </p>
         <div className="bg-secondary rounded-lg p-3">
-          {xAiAPIKey ? (
+          {xAPIKey ? (
             <div className="flex justify-between items-center">
               <span className="text-sm">API Key is set</span>
               <Button
@@ -43,13 +40,13 @@ export default function XAiAPIKeySection() {
             <div className="flex flex-col space-y-2">
               <Input
                 type="password"
-                placeholder="Enter X AI API Key"
+                placeholder="Enter X API Key"
                 onChange={(e) => handleSaveKey(e.target.value)}
                 className="w-full"
               />
               <Button
                 onClick={() => handleSaveKey("")}
-                disabled={!xAiAPIKey}
+                disabled={!xAPIKey}
                 className="w-full"
               >
                 Save API Key
