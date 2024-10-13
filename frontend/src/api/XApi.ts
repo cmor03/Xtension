@@ -1,7 +1,7 @@
 import { XAPICredentials } from '@/types';
 
 class XApi {
-  private baseUrl = 'https://api.twitter.com/2';
+  private baseUrl = 'https://api.x.com/2';
   private credentials: XAPICredentials | null = null;
 
   constructor(credentials: XAPICredentials | null) {
@@ -18,12 +18,14 @@ class XApi {
 
     const response = await fetch(url.toString(), {
       headers: {
-        Authorization: `Bearer ${this.credentials.bearerToken}`,
+        'Authorization': `Bearer ${this.credentials.bearerToken}`,
+        'Content-Type': 'application/json',
       },
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json();
+      throw new Error(`Twitter API error: ${JSON.stringify(errorData)}`);
     }
 
     return await response.json();

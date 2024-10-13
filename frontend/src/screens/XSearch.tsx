@@ -1,32 +1,29 @@
 import React, { useState } from 'react';
-import { useXApi, useXAPICredentials, useXSetAPICredentials } from '../hooks/useX';
-import { XAPICredentials } from '@/types';
+import { useXApi, useXAPICredentials } from '../hooks/useX';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { Tweet } from "react-tweet"
+import { useXAiApi } from "@/hooks/useXAi";
+import { useAppWebpageContent } from "@/hooks/useApp";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2 } from "lucide-react";
+
+interface Keyword {
+  text: string;
+  isIncluded: boolean;
+}
 
 const TwitterSearch: React.FC = () => {
   const xApi = useXApi();
+  const xAiApi = useXAiApi();
   const xAPICredentials = useXAPICredentials();
-  const setXAPICredentials = useXSetAPICredentials();
-  const [newCredentials, setNewCredentials] = useState<XAPICredentials>({
-    apiKey: '',
-    apiKeySecret: '',
-    bearerToken: '',
-    accessToken: '',
-    accessTokenSecret: '',
-  });
+  const webpageContent = useAppWebpageContent();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any>(null);
-
-  const handleCredentialsChange = (field: keyof XAPICredentials) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewCredentials({ ...newCredentials, [field]: e.target.value });
-  };
-
-  const handleSetCredentials = () => {
-    setXAPICredentials(newCredentials);
-  };
+  const [keywords, setKeywords] = useState<Keyword[]>([]);
+  const [isParsing, setIsParsing] = useState(false);
+  const [parsingStatus, setParsingStatus] = useState<string>("");
+  const [hasSearched, setHasSearched] = useState(false);
 
   const handleSearch = async () => {
     if (!xApi) {
@@ -35,96 +32,150 @@ const TwitterSearch: React.FC = () => {
     }
 
     try {
-      const response = await xApi.searchTweets(searchQuery);
+      const includedKeywords = keywords
+        .filter(kw => kw.isIncluded)
+        .map(kw => kw.text)
+        .join(' ');
+
+      const finalQuery = keywords.length > 0 ? includedKeywords : searchQuery;
+
+      const response = await xApi.searchTweets(finalQuery);
       setSearchResults(response);
+      setHasSearched(true);
     } catch (error) {
       console.error('Error searching tweets:', error);
+      setSearchResults(null);
     }
+  };
+
+  const getKeywordsFromWebpage = async () => {
+    if (!xAiApi || !webpageContent) {
+      console.error("xAiApi or webpageContent is missing");
+      return;
+    }
+
+    setIsParsing(true);
+    setParsingStatus("Analyzing webpage content...");
+
+    try {
+      const systemPrompt = `
+        Analyze the following webpage content and extract 5-10 key phrases or keywords that best represent the main topics and themes of the page. Return these as a JSON array of objects, each with a "text" property. Do not wrap the JSON in a code block.
+      `;
+
+      const response = await xAiApi.sendMessage([
+        { role: "system", content: systemPrompt },
+        { role: "user", content: webpageContent.substring(0, 8000) },
+      ]);
+
+      if (response.choices && response.choices.length > 0 && response.choices[0].message) {
+        let content = response.choices[0].message.content;
+
+        const jsonMatch = content.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          content = jsonMatch[0];
+          const parsedKeywords: Keyword[] = JSON.parse(content).map((kw: { text: string }) => ({
+            ...kw,
+            isIncluded: false
+          }));
+          setKeywords(parsedKeywords);
+        }
+      }
+    } catch (error) {
+      console.error("Error extracting keywords:", error);
+    } finally {
+      setIsParsing(false);
+      setParsingStatus("");
+    }
+  };
+
+  const toggleKeyword = (index: number) => {
+    setKeywords(prev =>
+      prev.map((kw, i) =>
+        i === index ? { ...kw, isIncluded: !kw.isIncluded } : kw
+      )
+    );
   };
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex-grow overflow-hidden">
         <div className="h-full overflow-y-auto px-4">
-          <h2 className="text-2xl font-bold mb-4">X Search</h2>
-          {!xAPICredentials ? (
-            <div className="space-y-2">
-              <Input
-                type="password"
-                value={newCredentials.apiKey}
-                onChange={handleCredentialsChange('apiKey')}
-                placeholder="API Key"
-                className="w-full"
-              />
-              <Input
-                type="password"
-                value={newCredentials.apiKeySecret}
-                onChange={handleCredentialsChange('apiKeySecret')}
-                placeholder="API Key Secret"
-                className="w-full"
-              />
-              <Input
-                type="password"
-                value={newCredentials.bearerToken}
-                onChange={handleCredentialsChange('bearerToken')}
-                placeholder="Bearer Token"
-                className="w-full"
-              />
-              <Input
-                type="password"
-                value={newCredentials.accessToken}
-                onChange={handleCredentialsChange('accessToken')}
-                placeholder="Access Token"
-                className="w-full"
-              />
-              <Input
-                type="password"
-                value={newCredentials.accessTokenSecret}
-                onChange={handleCredentialsChange('accessTokenSecret')}
-                placeholder="Access Token Secret"
-                className="w-full"
-              />
-              <Button onClick={handleSetCredentials} className="w-full">Set Credentials</Button>
-            </div>
-          ) : (
-            <div className="mb-4">
-              <p className="text-sm text-muted-foreground">API Credentials are set</p>
-              <Button onClick={() => setXAPICredentials(null)} variant="outline" className="mt-2">Clear Credentials</Button>
-            </div>
+          <h2 className="text-2xl font-bold my-4">X Search</h2>
+          {!hasSearched && (
+            <>
+              {keywords.length === 0 && (
+                <div className="mt-4">
+                  <div className="flex space-x-2">
+                    <Input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Enter search query"
+                      className="flex-grow"
+                    />
+                    <Button 
+                      onClick={handleSearch} 
+                      disabled={!xAPICredentials || searchQuery.trim() === ''}
+                    >
+                      Search Tweets
+                    </Button>
+                  </div>
+                </div>
+              )}
+              <Button
+                onClick={getKeywordsFromWebpage}
+                disabled={isParsing}
+                className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+                variant="default"
+              >
+                {isParsing ? "Parsing..." : "Extract Keywords from Webpage"}
+              </Button>
+              {isParsing && (
+                <div className="flex items-center justify-center space-x-2 mt-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>{parsingStatus}</span>
+                </div>
+              )}
+              {keywords.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="text-lg font-semibold mb-2">Keywords:</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {keywords.map((kw, index) => (
+                      <div key={index} className="flex items-center">
+                        <Checkbox
+                          id={`keyword-${index}`}
+                          checked={kw.isIncluded}
+                          onCheckedChange={() => toggleKeyword(index)}
+                          className="mr-2"
+                        />
+                        <label htmlFor={`keyword-${index}`} className="text-sm">
+                          {kw.text}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <Button 
+                    onClick={handleSearch} 
+                    disabled={!xAPICredentials || keywords.filter(kw => kw.isIncluded).length === 0}
+                    className="mt-4 w-full"
+                  >
+                    Search with Selected Keywords
+                  </Button>
+                </div>
+              )}
+            </>
           )}
-          <div className="mt-4">
-            <div className="flex space-x-2">
-              <Input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Enter search query"
-                className="flex-grow"
-              />
-              <Button onClick={handleSearch} disabled={!xAPICredentials}>Search Tweets</Button>
-            </div>
-          </div>
-          {searchResults && (
+          {hasSearched && (
             <div className="mt-4">
-              <h3 className="text-xl font-semibold mb-2">Search Results:</h3>
-              <div className="bg-gray-100 p-4 rounded-lg">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    pre: ({ ...props }) => (
-                      <pre className="bg-gray-800 text-white p-2 rounded" {...props} />
-                    ),
-                    code: ({ inline, ...props }) =>
-                      inline ? (
-                        <code className="bg-gray-200 text-red-500 px-1 rounded" {...props} />
-                      ) : (
-                        <code {...props} />
-                      ),
-                  }}
-                >
-                  {`\`\`\`json\n${JSON.stringify(searchResults, null, 2)}\n\`\`\``}
-                </ReactMarkdown>
-              </div>
+              {searchResults && searchResults.data && searchResults.data.length > 0 ? (
+                <div className="space-y-8">
+                  {searchResults.data.map((tweet: any) => (
+                    tweet.id ? <Tweet id={tweet.id} key={tweet.id} /> : null
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-gray-500">No relevant tweets found</p>
+              )}
             </div>
           )}
         </div>

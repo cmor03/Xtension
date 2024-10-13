@@ -59,13 +59,13 @@ export default function HomeScreen() {
         );
       default:
         return (
-          <>
+          <div className="flex flex-col justify-center items-center pt-8 h-full">
             <BalanceDisplay balance={balance} />
             <ActionButtons
               onSendClick={() => setCurrentScreen(Screen.Send)}
               onReceiveClick={() => setCurrentScreen(Screen.Receive)}
             />
-          </>
+          </div>
         );
     }
   };
