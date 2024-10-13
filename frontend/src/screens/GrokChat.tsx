@@ -395,7 +395,7 @@ export default function GrokChat() {
       console.log("Build request completed");
 
       // Trim the encoded prompt to fit within the maximum URI size
-      const maxUriLength = 2000; // Typical maximum length for most browsers
+      const maxUriLength = 20000;
       let encodedPrompt = encodeURIComponent(assistantMessage);
       if (encodedPrompt.length > maxUriLength) {
         const trimmedAssistantMessage = assistantMessage.slice(
