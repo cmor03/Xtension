@@ -3,7 +3,7 @@ import ReplitAccountSection from "../components/settings/ReplitAccountSection";
 import LightningAddressSection from "../components/settings/LightningAddressSection";
 import SupportSection from "../components/settings/SupportSection";
 import XAiAPIKeySection from "../components/settings/XAiAPIKeySection";
-// import XAPIKeySection from "../components/settings/XAPIKeySection";
+import XAPIKeySection from "../components/settings/XAPIKeySection";
 
 export default function SettingsScreen() {
   return (
@@ -13,7 +13,7 @@ export default function SettingsScreen() {
       <div className="space-y-12">
         <ReplitAccountSection />
         <XAiAPIKeySection />
-        {/* <XAPIKeySection /> */}
+        <XAPIKeySection />
         <LightningAddressSection />
         <SupportSection />
       </div>

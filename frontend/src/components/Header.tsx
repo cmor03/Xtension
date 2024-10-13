@@ -36,6 +36,12 @@ export default function Header() {
     }
   };
 
+  const handleXSearchClick = () => {
+    setActiveTab(Tab.XSearch);
+    setCurrentScreen(Screen.XSearch);
+    setIsOpen(false);
+  };
+
   return (
     <header className="flex justify-between items-center py-2 px-4 border-b relative">
       <h1
@@ -80,6 +86,13 @@ export default function Header() {
                 disabled={!xAiApi}
               >
                 GrokChat {!xAiApi && "(API key not set)"}
+              </Button>
+              <Button
+                variant={activeTab === Tab.XSearch ? "default" : "ghost"}
+                className="justify-start"
+                onClick={handleXSearchClick}
+              >
+                X Search
               </Button>
               <Button
                 variant={activeTab === Tab.Wallet ? "default" : "ghost"}
