@@ -51,10 +51,10 @@ export default function Header() {
           setCurrentScreen(Screen.Home);
         }}
       >
-        repl-ex
+        repl-x
       </h1>
       {user && (
-        <p className="text-xs text-muted-foreground">{user.name}@repl-ex.com</p>
+        <p className="text-xs text-muted-foreground">{user.name}@repl-x.com</p>
       )}
       <div className="flex items-center">
         <div

@@ -11,7 +11,7 @@ export default function LightningAddressSection() {
       <div className="flex flex-col space-y-2">
         <span className="text-xl font-semibold">Lightning Address</span>
         <div className="text-sm text-muted-foreground">
-          {currentUser.name}@repl-ex.com
+          {currentUser.name}@repl-x.com
         </div>
       </div>
       <Separator />
