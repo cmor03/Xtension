@@ -7,6 +7,8 @@ import { useXAiApi } from "@/hooks/useXAi";
 import { useAppWebpageContent } from "@/hooks/useApp";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { setError } from "@/hooks/useError";
 
 interface Keyword {
   text: string;
@@ -24,6 +26,8 @@ const TwitterSearch: React.FC = () => {
   const [isParsing, setIsParsing] = useState(false);
   const [parsingStatus, setParsingStatus] = useState<string>("");
   const [hasSearched, setHasSearched] = useState(false);
+  const [summary, setSummary] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   const handleSearch = async () => {
     if (!xApi) {
@@ -37,14 +41,59 @@ const TwitterSearch: React.FC = () => {
         .map(kw => kw.text)
         .join(' ');
 
-      const finalQuery = keywords.length > 0 ? includedKeywords : searchQuery;
+      let finalQuery = keywords.length > 0 ? includedKeywords : searchQuery;
+      
+      // Replace "and" with "&" to avoid Twitter API issues
+      finalQuery = finalQuery.replace(/\band\b/gi, "&");
+
+      setHasSearched(true);
+      setSearchResults(null);
+      setSummary("");
 
       const response = await xApi.searchTweets(finalQuery);
       setSearchResults(response);
-      setHasSearched(true);
+
+      if (response.data && response.data.length > 0) {
+        await generateSummary(response.data, finalQuery);
+      } else {
+        setSummary("");
+      }
     } catch (error) {
       console.error('Error searching tweets:', error);
       setSearchResults(null);
+      setSummary("");
+      
+      let errorMessage = "An error occurred while searching tweets.";
+      if (error.response && error.response.data && error.response.data.errors) {
+        const twitterError = error.response.data.errors[0];
+        errorMessage = `Twitter API error: ${twitterError.message}`;
+      }
+      
+      setError(errorMessage);
+    }
+  };
+
+  const generateSummary = async (tweets: any[], query: string) => {
+    if (!xAiApi) {
+      console.error('XAiApi is not initialized');
+      return;
+    }
+    const tweetTexts = tweets.map(tweet => tweet.text).join('\n\n');
+    const prompt = `Analyze these tweets about "${query}" and generate a list of 3-5 key points that users are talking about. Format your response as: "Users are talking about: (point1, point2, point3, ...)". Be concise and focus on the most prominent topics.
+
+${tweetTexts}`;
+
+    try {
+      const response = await xAiApi.sendMessage([
+        { role: "user", content: prompt }
+      ], { temperature: 0.3 });
+
+      if (response.choices && response.choices.length > 0 && response.choices[0].message) {
+        setSummary(response.choices[0].message.content.trim());
+      }
+    } catch (error) {
+      console.error('Error generating key points:', error);
+      setSummary("");
     }
   };
 
@@ -97,10 +146,10 @@ const TwitterSearch: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-gray-900 text-white">
       <div className="flex-grow overflow-hidden">
-        <div className="h-full overflow-y-auto px-4">
-          <h2 className="text-2xl font-bold my-4">X Search</h2>
+        <div className="h-full overflow-y-auto px-4 py-6">
+          <h2 className="text-2xl font-bold mb-4">X Search</h2>
           {!hasSearched && (
             <>
               {keywords.length === 0 && (
@@ -168,13 +217,26 @@ const TwitterSearch: React.FC = () => {
           {hasSearched && (
             <div className="mt-4">
               {searchResults && searchResults.data && searchResults.data.length > 0 ? (
-                <div className="space-y-8">
-                  {searchResults.data.map((tweet: any) => (
-                    tweet.id ? <Tweet id={tweet.id} key={tweet.id} /> : null
-                  ))}
-                </div>
+                <>
+                  {summary && (
+                    <Card className="mb-4 p-4 bg-gray-800 border-gray-700">
+                      <h3 className="text-lg font-semibold mb-2">Summary</h3>
+                      <p className="text-white">{summary}</p>
+                    </Card>
+                  )}
+                  <div className="space-y-8">
+                    {searchResults.data.map((tweet: any) => (
+                      tweet.id ? <Tweet id={tweet.id} key={tweet.id} /> : null
+                    ))}
+                  </div>
+                </>
               ) : (
                 <p className="text-center text-gray-500">No relevant tweets found</p>
+              )}
+              {error && (
+                <Card className="mb-4 p-4 bg-red-900 border-red-700">
+                  <p className="text-white">{error}</p>
+                </Card>
               )}
             </div>
           )}
