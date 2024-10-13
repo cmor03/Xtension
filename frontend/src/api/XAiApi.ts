@@ -10,7 +10,7 @@ interface ChatOptions {
 
 export default class XAiApi {
   private apiKey: string;
-  private defaultModel: string = "grok-2-mini-public";
+  private defaultModel: string = "grok-preview";
   private defaultTemperature: number = 0.7;
 
   constructor(apiKey: string) {
