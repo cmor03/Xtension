@@ -263,7 +263,10 @@ export default function GrokChat() {
   };
 
   const handleBuild = useCallback(async () => {
-    if (!xAiApi) return;
+    if (!xAiApi) {
+      setError("API is not available");
+      return;
+    }
 
     setHasInteracted(true);
     setIsStreaming(true);
@@ -274,39 +277,56 @@ export default function GrokChat() {
 
     try {
       console.log("Preparing build request...");
-      const systemPrompt = `
-        Your task is to transform the user's chat history and final prompt into a detailed, formal specification for building a flask and vanilla javascript program or application. Do not build anything yourself. Instead, create a clear, structured set of instructions that another AI agent can follow to implement the project. Include:
+      const baseSystemPrompt = `
+        Your task is to create a detailed, formal specification for building a Flask and vanilla JavaScript application that replicates the functionality of the provided webpage or components. Include:
 
         1. A brief overview of the project
-        2. Detailed requirements and features
-        3. Suggested file structure
-        4. API endpoints (if applicable)
+        2. Detailed requirements and features based on the provided content
+        3. Suggested file structure for a Flask application
+        4. API endpoints to support the functionality
         5. Database schema (if applicable)
         6. Key functions or classes to implement
         7. Any specific libraries or tools to use
 
         Format your response as a markdown document with appropriate headers and code blocks where necessary. Be concise but thorough. Start your response with a ### Project Overview header and continue from there, do not preface your response with anything just start the structured response.
       `;
-      console.log("System prompt for build request:", systemPrompt);
+
+      let content;
+      let systemPrompt = baseSystemPrompt;
 
       const includedComponents = webpageComponents
         .filter((comp) => comp.isIncluded)
         .map((comp) => `${comp.name}: ${comp.content}`)
         .join("\n\n");
 
-      const messagesWithComponents: Message[] = includedComponents
-        ? [
-            ...messages,
-            {
-              role: "system",
-              content: `Webpage components:\n${includedComponents}`,
-            },
-          ]
-        : messages;
+      if (messages.length > 0) {
+        const userInstructions = messages[messages.length - 1].content;
+        systemPrompt += `\n\nAdditional user instructions: ${userInstructions}`;
+        content =
+          includedComponents ||
+          webpageContent ||
+          "No webpage content available";
+      } else if (includedComponents) {
+        content = includedComponents;
+        systemPrompt +=
+          "\n\nFocus on creating an app that replicates the functionality of the selected components.";
+      } else {
+        content = webpageContent || "No webpage content available";
+        systemPrompt +=
+          "\n\nCreate an app that replicates the full functionality of the provided webpage.";
+      }
+
+      console.log("System prompt for build request:", systemPrompt);
+      console.log("Content length:", content.length);
+
+      if (content.length > 8000) {
+        content = content.substring(0, 8000) + "... (truncated)";
+        console.log("Content truncated to 8000 characters");
+      }
 
       setBuildProgress(["Planning project specification..."]);
       const stream = await xAiApi.sendMessageWithSystemPromptStream(
-        messagesWithComponents,
+        [{ role: "user", content }],
         systemPrompt
       );
 
@@ -315,6 +335,30 @@ export default function GrokChat() {
       const reader = stream.getReader();
       const decoder = new TextDecoder();
       let assistantMessage = "";
+
+      // Simulated progress steps
+      const progressSteps = [
+        "Analyzing requirements...",
+        "Designing file structure...",
+        "Defining API endpoints...",
+        "Creating database schema...",
+        "Outlining key functions...",
+        "Selecting libraries and tools...",
+        "Finalizing project plan...",
+      ];
+
+      let stepIndex = 0;
+      const updateProgress = () => {
+        if (stepIndex < progressSteps.length) {
+          setCurrentStep(progressSteps[stepIndex]);
+          stepIndex++;
+          setTimeout(updateProgress, 3000);
+        } else {
+          setCurrentStep("Finishing up... aaaaaaaand....");
+        }
+      };
+
+      updateProgress();
 
       while (true) {
         const { done, value } = await reader.read();
@@ -333,24 +377,6 @@ export default function GrokChat() {
               const parsed = JSON.parse(data);
               if (parsed.choices[0].delta.content) {
                 assistantMessage += parsed.choices[0].delta.content;
-
-                // Update current step based on content
-                if (
-                  assistantMessage.includes("API endpoints") &&
-                  currentStep !== "Defining API endpoints..."
-                ) {
-                  setCurrentStep("Defining API endpoints...");
-                } else if (
-                  assistantMessage.includes("Database schema") &&
-                  currentStep !== "Designing database schema..."
-                ) {
-                  setCurrentStep("Designing database schema...");
-                } else if (
-                  assistantMessage.includes("Key functions") &&
-                  currentStep !== "Outlining key functions..."
-                ) {
-                  setCurrentStep("Outlining key functions...");
-                }
               }
             } catch (e) {
               console.error("Error parsing JSON:", e);
@@ -359,7 +385,7 @@ export default function GrokChat() {
         }
       }
 
-      setBuildProgress((prev) => [...prev, "Finalizing project plan..."]);
+      setBuildProgress((prev) => [...prev, "Project plan complete!"]);
       setMessages((prevMessages) => [
         ...prevMessages,
         { role: "assistant", content: assistantMessage },
@@ -368,9 +394,19 @@ export default function GrokChat() {
 
       console.log("Build request completed");
 
-      // Open Replit tab with encoded prompt
-      const encodedPrompt = encodeURIComponent(assistantMessage);
+      // Trim the encoded prompt to fit within the maximum URI size
+      const maxUriLength = 2000; // Typical maximum length for most browsers
+      let encodedPrompt = encodeURIComponent(assistantMessage);
+      if (encodedPrompt.length > maxUriLength) {
+        const trimmedAssistantMessage = assistantMessage.slice(
+          0,
+          Math.floor(maxUriLength / 2)
+        );
+        encodedPrompt = encodeURIComponent(trimmedAssistantMessage);
+        console.log("Prompt trimmed to fit URI length limit");
+      }
       console.log("Opening Replit tab with encoded prompt:", encodedPrompt);
+
       chrome.tabs.create(
         { url: `https://replit.com/new/nix?tab=ai&prompt=${encodedPrompt}` },
         (tab) => {
@@ -412,7 +448,12 @@ export default function GrokChat() {
       );
     } catch (error) {
       console.error("Error in handleBuild:", error);
-      setError(`Failed to generate build specification: ${error.message}`);
+      let errorMessage = `Failed to generate build specification: ${error.message}`;
+      if (error.response) {
+        errorMessage += ` (Status: ${error.response.status})`;
+        console.error("Response data:", error.response.data);
+      }
+      setError(errorMessage);
     } finally {
       setIsStreaming(false);
       setIsBuildingAgent(false);
@@ -426,7 +467,7 @@ export default function GrokChat() {
     setError,
     setMessages,
     scrollToBottom,
-    currentStep,
+    webpageContent,
   ]);
 
   return (
