@@ -8,7 +8,6 @@ import { useAppWebpageContent } from "@/hooks/useApp";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { setError } from "@/hooks/useError";
 
 interface Keyword {
   text: string;
